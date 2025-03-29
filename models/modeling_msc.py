@@ -202,12 +202,12 @@ class MultiSampleComparison(nn.Module):
         logits = logits.view(-1, logits.shape[2])  # flatten
 
         fc_ori = correlation_calculation(x * bool_masked_pos.unsqueeze(1))
-        loss, sim = self.symmetirc_loss(h_label, latent_items_predicts, latent_items_targets, logits, fc_ori)
-        return logits, loss, sim
+        loss = self.symmetirc_loss(h_label, latent_items_predicts, latent_items_targets, logits, fc_ori)
+        return logits, loss
 
     def forward(self, x, h_label, bool_masked_pos):
-        logits, loss, sim = self.forward_ts(x, h_label, bool_masked_pos)
-        return logits, loss, sim
+        logits, loss = self.forward_ts(x, h_label, bool_masked_pos)
+        return logits, loss
 
 
 

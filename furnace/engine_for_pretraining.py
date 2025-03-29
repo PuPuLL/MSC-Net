@@ -25,7 +25,6 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
     metric_logger.add_meter('min_lr', utils.SmoothedValue(window_size=1, fmt='{value:.6f}'))
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 10
-    similarity = {}
 
     for step, batch in enumerate(metric_logger.log_every(data_loader, print_freq, header)):
         # assign learning rate & weight decay for each step
@@ -55,7 +54,7 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
 
         with torch.cuda.amp.autocast():
             outputs = model(samples, h_label, bool_masked_pos=bool_masked_pos.squeeze())
-            outputs, loss_all, sim = outputs
+            outputs, loss_all = outputs
 
             b, c, seq_len, nvars = samples.size()
             outputs = outputs.reshape(b, -1, seq_len, seq_len)
@@ -122,4 +121,4 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
     metric_logger.synchronize_between_processes()
     now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     print(now_time, "Averaged stats:", metric_logger)
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, similarity
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}

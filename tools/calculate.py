@@ -141,13 +141,8 @@ class Symmetric_loss(torch.nn.Module):
         fc_ori = self.batch_norm_net(fc_ori.squeeze().view(self.batch_size, -1))
         loss_NCM, sim_net = self.loss_compute(fc_masked,
                                               fc_ori, labels)
-        similarity = {
-            'ms_sim': sim_RCM, 'ms_label': labels, 'ms_loss': loss_RCM,
-            'age_sim': sim_age, 'age_label': age_diff_matrix, 'age_loss': loss_age,
-            'net_sim': sim_net, 'net_label': labels, 'net_loss': loss_NCM
-        }
 
-        return [loss_NCM, loss_age, loss_RCM], similarity
+        return [loss_NCM, loss_age, loss_RCM]
 
 
 def correlation_calculation(ts):
