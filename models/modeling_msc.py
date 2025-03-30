@@ -18,7 +18,7 @@ def trunc_normal_(tensor, mean=0., std=1.):
 
 
 class MultiSampleComparison(nn.Module):
-    def __init__(self, img_size=224, patch_size=16, in_chans=1, embed_dim=768, depth=12,
+    def __init__(self, img_size=(264, 256), patch_size=(1, 256), in_chans=1, embed_dim=768, depth=12,
                  num_heads=12, mlp_dim=2048, mlp_ratio=4.0, qkv_bias=True, qk_scale=None, drop_rate=0., attn_drop_rate=0.,
                  drop_path_rate=0., norm_layer=None, init_values=None, attn_head_dim=None, init_std=0.02, 
                  decoder_embed_dim=512, predictor_depth=2, decoder_num_classes=264, decoder_num_heads=12,
@@ -143,7 +143,7 @@ class MultiSampleComparison(nn.Module):
         '''
         x_unmasked = x * ~bool_masked_pos.unsqueeze(1)
 
-        x_unmasked = self.encoder(x_unmasked, bool_masked_pos)
+        x_unmasked = self.encoder(x_unmasked)
 
         # encoder to regresser projection
         if self.encoder_to_predicotr is not None:
@@ -154,8 +154,7 @@ class MultiSampleComparison(nn.Module):
         Alignment branch
         '''
         with torch.no_grad():
-            latent_target = self.alignment_encoder(x * bool_masked_pos.unsqueeze(1),
-                                                   bool_masked_pos=(~bool_masked_pos))
+            latent_target = self.alignment_encoder(x * bool_masked_pos.unsqueeze(1))
             latent_target = latent_target[:, 1:, :]  # remove class token
             if self.encoder_to_predicotr is not None:
                 latent_target = self.encoder_to_predictor_norm(self.encoder_to_predicotr(latent_target.detach()))

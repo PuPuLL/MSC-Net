@@ -10,7 +10,6 @@ import sys
 
 from pathlib import Path
 from sklearn.model_selection import KFold, StratifiedKFold
-import wandb
 
 from timm.models import create_model
 from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
@@ -220,8 +219,6 @@ def main(args, ds_init):
     train_input = 'your/index/path.txt'
     Input = '/your/data/path/'
 
-    if args.dataset == 'COBRE':
-        args.batch_size = 16
     # fix the seed for reproducibility
     seed = args.seed + utils.get_rank()
 
@@ -244,8 +241,6 @@ def main(args, ds_init):
     folder = StratifiedKFold(n_splits=args.KFolds, shuffle=True)
     str1 = '=' * 20
     total_acc, sen, spe, = [], [], []
-    pred_li, label_li = [], []
-    loss_fold, acc_trn_fold, acc_val_fold = [], [], []
 
     print('{0}Start Cross Validation{1}'.format(str1, str1))
     for num, (train_idx, test_idx) in enumerate(folder.split(all_df, all_labels)):
@@ -567,7 +562,7 @@ def main(args, ds_init):
             if log_writer is not None:
                 log_writer.set_step(epoch * num_training_steps_per_epoch * args.update_freq)
 
-            train_stats, loss_value, acc_trn = train_one_epoch(
+            train_stats = train_one_epoch(
                 num, model, criterion, data_loader_train, optimizer,
                 device, epoch, loss_scaler, args.clip_grad, model_ema,
                 log_writer=log_writer, start_steps=epoch * num_training_steps_per_epoch,
@@ -580,7 +575,7 @@ def main(args, ds_init):
                         args=args, model=model, model_without_ddp=model_without_ddp, optimizer=optimizer,
                         loss_scaler=loss_scaler, epoch=epoch, model_ema=model_ema)
             if data_loader_val is not None:
-                test_stats, acc_val = evaluate(data_loader_val, model, device)
+                test_stats = evaluate(data_loader_val, model, device)
                 print(f"Accuracy of the network on the {len(dataset_val)} test images: {test_stats['acc1']:.1f}%")
                 if max_accuracy < test_stats["acc1"]:
                     max_accuracy = test_stats["acc1"]
@@ -609,10 +604,6 @@ def main(args, ds_init):
                 with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
                     f.write(json.dumps(log_stats) + "\n")
 
-            loss_epoch.append(loss_value)
-            acc_trn_epoch.append(acc_trn)
-            acc_val_epoch.append(acc_val)
-
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
         print('Training time {}'.format(total_time_str))
@@ -622,36 +613,20 @@ def main(args, ds_init):
         total_acc.append(test_acc)
         sen.append(sencitivity)
         spe.append(specificity)
-        attn_list.append(attns)
-        loss_fold.append(np.array(loss_epoch))
-        acc_trn_fold.append(np.array(acc_trn_epoch))
-        acc_val_fold.append(np.array(acc_val_epoch))
-        label_li.append(np.array(label.cpu()))
-        pred_li.append(np.array(pred.cpu()).ravel())
 
         fold_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(fold_time)))
         print("Fold time {}/{}".format(total_time_str, num))
         print("Test_acc: {:.4f}".format(test_acc))
 
-    attn_all = torch.cat(attn_list)
-
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    loss_fold_mean = np.mean(loss_fold, axis=0)
 
     print("Training time {}".format(total_time_str))
     print("Test_acc: {:.4f}({:.2f})".format(np.mean(total_acc), np.std(total_acc)))
     print("Sencitivity: {:.4f}({:.2f})".format(np.mean(sen), np.std(sen)))
     print("Specificity: {:.4f}({:.2f})".format(np.mean(spe), np.std(spe)))
-    pretrain_num = args.finetune.split('/')[-2].split('_')[-1]
     if utils.is_main_process():
-        savename_attn = ('./attn_map/' + args.dataset + '_' + args.structure_ablation + '_' +
-                         str(pretrain_num) + '_' + str(args.ith) + '_attn_map')
-        np.save(savename_attn, attn_all.cpu().detach().numpy())
-        savename_label = ('./attn_map/' + args.dataset + '_' + args.structure_ablation + '_' +
-                          str(pretrain_num) + '_' + str(args.ith) + '_label')
-        np.save(savename_label, label_li)
         save_xlsx(total_acc, sen, spe, args)
 
 

@@ -10,8 +10,6 @@ import torch.nn as nn
 
 import furnace.utils as utils
 import torch.nn.functional as F
-from tools.plot import plot, plot_image
-from tools.calculate import correlation_calculation
 from thop import profile
 
 

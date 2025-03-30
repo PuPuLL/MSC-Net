@@ -178,7 +178,6 @@ class PredictorBlock(nn.Module):
             self.gamma_2_cross = nn.Parameter(torch.ones((dim)),requires_grad=False)
 
     def forward(self, x_q, x_kv, pos_q, pos_k):
-        # print(x_q.size(), x_kv.size(), pos_q.size(), pos_k.size())
         x = x_q + self.drop_path(self.gamma_1_cross * self.cross_attn(self.norm1_q(x_q + pos_q), k=self.norm1_k(x_kv + pos_k), v=self.norm1_v(x_kv)))
         x = self.norm2_cross(x)
 
@@ -275,7 +274,7 @@ class SiameseEncoder(nn.Module):
     def get_num_layers(self):
         return len(self.blocks)
 
-    def forward_features(self, x, bool_masked_pos):
+    def forward_features(self, x):
 
         x = self.patch_embed(x)
 
@@ -300,8 +299,8 @@ class SiameseEncoder(nn.Module):
 
         return x_unmasked
 
-    def forward(self, x, bool_masked_pos):
-        x = self.forward_features(x, bool_masked_pos)
+    def forward(self, x):
+        x = self.forward_features(x)
         return x
 
 '''

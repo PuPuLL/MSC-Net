@@ -9,7 +9,7 @@
 Here is an example that pretrains MSC-Net base on ADHD-200 with 4 GPUs. Please see [scripts/pretrain.sh](scripts/pretrain.sh) for complete script.
 ```bash
 dataname='ADHD'
-OUTPUT_DIR="./output_ADHD/"
+OUTPUT_DIR="/your/output/path/"
 batch_size=8
 
 # ============================ pretraining ============================
@@ -17,7 +17,7 @@ OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.run
   --nproc_per_node=2 \
   tools/run_pretraining.py \
   --output_dir ${OUTPUT_DIR} \
-  --model msc_base_patch_256 \
+  --model model-to-use \
   --batch_size ${batch_size} --lr 5e-4 --warmup_epochs 2 --epochs 800 \
   --clip_grad 7.0 --layer_scale_init_value 0.1 \
   --drop_path 0.1 \
@@ -51,20 +51,20 @@ Here is an example that pretrains MSC-Net base on ADHD-200 with 4 GPUs. Please s
 ```bash
 dataname=('ADHD')
 MODEL_PATH=(
-    ./output_${dataname}_MSC-Net_full_8/pretrain_checkpoint-799.pth
+    your/pre-trained/model/path/
 )
 
 for dataname in "${dataname[@]}"; do
   experiment_name=$(basename "$(dirname "$MODEL_PATH")")
 
-  OUTPUT_DIR=./output_ADHD/${experiment_name}/
+  OUTPUT_DIR= your/output/path
 
   for i in {1..5}; do
     echo "Run $i th project with model: $experiment_name"
     OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.run \
         --nproc_per_node=2 \
         tools/run_class_finetuning.py \
-        --model msc_net_patch1_256 \
+        --model model-to-use \
         --finetune $MODEL_PATH \
         --nb_classes 2 \
         --output_dir $OUTPUT_DIR \

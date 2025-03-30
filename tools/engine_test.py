@@ -1,21 +1,9 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-# --------------------------------------------------------
-# References:
-# DeiT: https://github.com/facebookresearch/deit
-# BEiT: https://github.com/microsoft/unilm/tree/master/beit
-# --------------------------------------------------------
-
 import torch
 from scipy.io import savemat
 import numpy as np
 from timm.utils import accuracy
 import furnace.utils as utils
 from calculate import sencitivity_specificity
-from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
 
@@ -29,8 +17,7 @@ def test(data_loader, model, device):
     output_list, attn_list = [], []
 
     model.eval()
-    softmax = torch.nn.Softmax(dim=1).to(device)  
-    attn_head_avg_single = []
+    softmax = torch.nn.Softmax(dim=1).to(device)
 
     for batch in metric_logger.log_every(data_loader, 10, header):
         ts = batch[0]
@@ -59,7 +46,6 @@ def test(data_loader, model, device):
     metric_logger.meters["test_acc"].update(acc)
 
     sensitivity, specificity = sencitivity_specificity(mf, label)
-
 
     metric_logger.synchronize_between_processes()
 

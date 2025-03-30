@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 
 from timm.utils import accuracy, ModelEma
-
 import furnace.utils as utils
 from thop import profile
 
@@ -61,7 +60,6 @@ def train_one_epoch(num: int, model: torch.nn.Module, criterion: torch.nn.Module
 
         samples = samples.float().to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
-
 
         if loss_scaler is None:
             samples = samples.half()
@@ -136,20 +134,18 @@ def train_one_epoch(num: int, model: torch.nn.Module, criterion: torch.nn.Module
 
         loss_list.append(loss_value)
 
-        acc_trn.append(class_acc.cpu().detach())
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     print(now_time, "Averaged stats:", metric_logger)
-    return ({k: meter.global_avg for k, meter in metric_logger.meters.items()},
-            np.mean(np.array(loss_list)), np.mean(np.array(acc_trn)))
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
+
 
 
 @torch.no_grad()
 def evaluate(data_loader, model, device):
     criterion = torch.nn.CrossEntropyLoss()
-    acc_list = []
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Val:'
     # switch to evaluation mode
@@ -167,7 +163,6 @@ def evaluate(data_loader, model, device):
             loss = criterion(output, target)
 
         acc1 = accuracy(output, target, topk=(1,))
-        acc_list.append(acc1[0].cpu())
 
         batch_size = images.shape[0]
         metric_logger.update(loss=loss.item())
@@ -178,4 +173,4 @@ def evaluate(data_loader, model, device):
     print('* Acc@1 {top1.global_avg:.3f} loss {losses.global_avg:.3f}'
           .format(top1=metric_logger.acc1, losses=metric_logger.loss))
 
-    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}, np.mean(np.array(acc_list))
+    return {k: meter.global_avg for k, meter in metric_logger.meters.items()}

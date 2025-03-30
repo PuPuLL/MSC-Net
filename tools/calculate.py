@@ -3,8 +3,7 @@ from sklearn.metrics import roc_auc_score
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import matplotlib
-matplotlib.use('Agg')
+
 import torch
 from scipy.io import loadmat
 import torch.nn.functional as F

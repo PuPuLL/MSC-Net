@@ -1,15 +1,7 @@
-from collections import OrderedDict
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
-
-import math
-import sys
-
-from tools.calculate import correlation_calculation
-from sklearn.metrics.pairwise import cosine_similarity
 
 
 class age_predictor(nn.Module):
