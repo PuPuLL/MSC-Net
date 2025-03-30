@@ -134,7 +134,6 @@ def train_one_epoch(num: int, model: torch.nn.Module, criterion: torch.nn.Module
 
         loss_list.append(loss_value)
 
-
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     now_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())

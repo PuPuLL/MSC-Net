@@ -42,7 +42,6 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
 
         samples, fc, bool_masked_pos, h_label = batch
 
-        fc = fc.float().to(device, non_blocking=True)
         samples = samples.float().to(device, non_blocking=True)
         bool_masked_pos = bool_masked_pos.to(device, non_blocking=True)
         h_label = h_label.to(device, non_blocking=True)
@@ -52,10 +51,7 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
 
         with torch.cuda.amp.autocast():
             outputs = model(samples, h_label, bool_masked_pos=bool_masked_pos.squeeze())
-            outputs, loss_all = outputs
-
-            b, c, seq_len, nvars = samples.size()
-            outputs = outputs.reshape(b, -1, seq_len, seq_len)
+            _, loss_all = outputs
 
             loss_NCM, loss_age, loss_RCM = loss_all
             loss = loss_NCM + loss_age + loss_RCM
@@ -82,7 +78,6 @@ def train_one_epoch(model: torch.nn.Module, data_loader: Iterable, optimizer: to
         metric_logger.update(loss_RCM=loss_RCM_value)
         metric_logger.update(loss_age_value=loss_age_value)
         metric_logger.update(loss_scale=loss_scale_value)
-
 
         min_lr = 10.
         max_lr = 0.

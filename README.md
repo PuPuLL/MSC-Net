@@ -1,7 +1,7 @@
 # MSC-Net: Representations of human brain function through multi-sample comparisons for fMRI-based neuropsychiatric disorder classifications
 
 <p align="center">
-  <img src='./MSC-Net.jpg' width = "80%">
+  <img src='./MSC-Net.png' width = "80%">
 </p>
 
 ## Pre-training

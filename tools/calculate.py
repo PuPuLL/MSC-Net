@@ -20,12 +20,9 @@ def sencitivity_specificity(output, target):
 def max_length(root_path, all_train, dataset):
     max_len = 0
     for item in all_train:
-        if len(item) < 7 and dataset != 'ABIDE2':
+        if len(item) < 7:
             item = item.zfill(7)
-        if dataset == 'CamCAN':
-            file_name = item
-        else:
-            file_name = 'sub-' + item
+        file_name = 'sub-' + item
         filepath = os.path.join(root_path, file_name)
         fc = loadmat(filepath)['ts']
         temp = fc.shape[-1]
@@ -73,24 +70,13 @@ class Symmetric_loss(torch.nn.Module):
         norm = torch.norm(tensor, p=2, dim=dim, keepdim=True) + eps
         return tensor / norm
 
-    def normalize_to_neg1_1(self, tensor):
-        min_val = tensor.min()
-        max_val = tensor.max()
-        # Scale to [0, 1]
-        tensor = (tensor - min_val) / (max_val - min_val)
-        # Scale to [-1, 1]
-        tensor = tensor * 2 - 1
-        return tensor
-
-
     def symmetric_cross_entropy_torch(self, pred_matrix, label_matrix):
 
-
         L_CE = F.cross_entropy(pred_matrix, label_matrix)
-        
         L_RCE = F.cross_entropy(pred_matrix.t(), label_matrix)
         
         L_SCE = (L_CE + L_RCE) / 2
+
         return L_SCE
 
     def symmetric_mse_loss(self, pred_matrix, label_matrix):
@@ -106,7 +92,6 @@ class Symmetric_loss(torch.nn.Module):
 
         if flag_age:
             target_matrix = (logits_pred.view(-1, 1) - logits_target.view(1, -1)).float()
-            target_matrix = self.normalize_to_neg1_1(target_matrix)
             loss = self.symmetric_mse_loss(target_matrix, labels)
 
         else:
@@ -119,12 +104,8 @@ class Symmetric_loss(torch.nn.Module):
     def forward(self, h_label, logits_pred, logits_target, fc_masked, fc_ori):
         labels = torch.arange(self.batch_size, device=h_label.device)
 
-        sex = h_label[:, 0]
-        sex_matrix = torch.eq(sex.view(-1, 1), sex.view(1, -1)).float()
-
         age = h_label[:, 1]
         age_diff_matrix = (age.view(-1, 1) - age.view(1, -1)).float()
-        age_diff_matrix = self.normalize_to_neg1_1(age_diff_matrix)
 
         predict_RCM, predict_age = logits_pred
         target_RCM, target_age = logits_target
@@ -146,27 +127,20 @@ class Symmetric_loss(torch.nn.Module):
 
 def correlation_calculation(ts):
     epsilon = 1e-6
-    # Reshape to remove the channel dimension (64, 264, 256)
-    X_transposed = ts.squeeze(1)
 
-    # Transpose to get features as columns (64, 256, 264)
-    # X_transposed = X.permute(0, 2, 1)
+    X_transposed = ts.squeeze(1)
 
     # Center the data by subtracting the mean along the time step dimension
     X_mean = X_transposed.mean(dim=2, keepdim=True)
     X_centered = X_transposed - X_mean
 
-    # Calculate covariance matrix: batch-wise matrix multiplication (64, 264, 264)
     cov_matrix = torch.bmm(X_centered, X_centered.transpose(1, 2)) / (X_transposed.size(2) - 1)
 
-    # Calculate standard deviations for each time step (64, 264)
     stddev = X_transposed.std(dim=2)
 
-    # Compute the correlation matrix (64, 264, 264)
     stddev_matrix = stddev.unsqueeze(2) * stddev.unsqueeze(1)
     corr_matrix = cov_matrix / stddev_matrix
 
-    # Add channel dimension back, so the shape is (64, 1, 264, 264)
     corr_matrix = corr_matrix.unsqueeze(1)
 
     r = corr_matrix.clamp(min=-1 + epsilon, max=1 - epsilon)

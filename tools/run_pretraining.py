@@ -178,10 +178,8 @@ def main(args):
             train_set.append(item.split(' ')[0])
             train_h_label.append(item.split(' ')[1:])
 
-
     # get max length for padding
     args.length = max_length(Input, train_set, args.dataset)
-
 
     print("Max length = %s" % str(args.length))
     model = get_model(args)
