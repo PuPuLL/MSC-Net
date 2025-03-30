@@ -369,7 +369,7 @@ class LatentPredictor(nn.Module):
 """
 decoder that solves the recontruction task
 """
-class Decoder(nn.Module):
+class NetworkReconstructor(nn.Module):
     def __init__(self, num_classes=224, embed_dim=768, decoder_depth=6,
                  num_heads=12, mlp_ratio=4., qkv_bias=True, qk_scale=None, drop_rate=0., attn_drop_rate=0.,
                  drop_path_rate=0., norm_layer=None, init_values=None, init_std=0.02):
@@ -434,8 +434,7 @@ class Decoder(nn.Module):
             logits = self.head(x)
             return logits, latent_pred
         else:
-            # latent contextual regressor
-            x_masked = x_masked + pos_embed_masked  # add pos embed, like encoder
+            x_masked = x_masked + pos_embed_masked
             for blk in self.decoder_blocks:
                 x_masked = blk(x_masked)
             x_masked = self.norm(x_masked)

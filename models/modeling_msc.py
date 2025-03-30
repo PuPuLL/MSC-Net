@@ -69,7 +69,7 @@ class MultiSampleComparison(nn.Module):
         self.mask_token = nn.Parameter(torch.zeros(1, 1, decoder_embed_dim))
         trunc_normal_(self.mask_token, std=self.init_std)
 
-        self.decoder = Decoder(num_classes=decoder_num_classes, embed_dim=decoder_embed_dim, decoder_depth=decoder_depth,
+        self.NetworkReconstructor = NetworkReconstructor(num_classes=decoder_num_classes, embed_dim=decoder_embed_dim, decoder_depth=decoder_depth,
                             num_heads=decoder_num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias,
                             qk_scale=qk_scale, drop_rate=drop_rate, attn_drop_rate=attn_drop_rate, drop_path_rate=drop_path_rate,
                             norm_layer=norm_layer, init_values=decoder_layer_scale_init_value, init_std=init_std)
@@ -195,9 +195,9 @@ class MultiSampleComparison(nn.Module):
             self.age_parameter_update()
 
         '''
-        decoder for reconstruction
+        NetworkReconstructor for reconstruction
         '''
-        logits = self.decoder(latent_predict, pos_embed_masked)
+        logits = self.NetworkReconstructor(latent_predict, pos_embed_masked)
         logits = logits.view(-1, logits.shape[2])  # flatten
 
         fc_ori = correlation_calculation(x * bool_masked_pos.unsqueeze(1))
