@@ -49,17 +49,13 @@ class Symmetric_loss(torch.nn.Module):
         A_norm = torch.sqrt(torch.sum(A ** 2, dim=1, keepdim=True))  # [8, 1]
         B_norm = torch.sqrt(torch.sum(B ** 2, dim=1, keepdim=True))  # [8, 1]
 
-        
         A_expanded = A.unsqueeze(1)  # [8, 1, 128]
         B_expanded = B.unsqueeze(0)  # [1, 8, 128]
-
         
         dot_product = torch.sum(A_expanded * B_expanded, dim=2)  # [8, 8]
 
-        
         norm_product = A_norm * B_norm.T  # [8, 8]
 
-        
         cosine_similarity = dot_product / norm_product  # [8, 8]
         scaled_similarity = cosine_similarity * self.t
 
