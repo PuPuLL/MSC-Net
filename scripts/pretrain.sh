@@ -1,10 +1,10 @@
 dataname='ADHD'
-OUTPUT_DIR="./output_ADHD/"
+OUTPUT_DIR="your/output/path"
 batch_size=8
 
 # ============================ pretraining ============================
-OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="2,3" python -m torch.distributed.run \
-  --nproc_per_node=2 \
+OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.run \
+  --nproc_per_node=4 \
   tools/run_pretraining.py \
   --output_dir ${OUTPUT_DIR} \
   --model msc_base_patch_256 \

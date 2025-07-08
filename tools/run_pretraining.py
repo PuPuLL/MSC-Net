@@ -161,6 +161,7 @@ def main(args):
     print(args)
 
     Input = '/your/data/path/'
+    Input_FC = '/your/data/path/'
     h_label = '/your/index/file.txt'
 
     device = torch.device(args.device)
