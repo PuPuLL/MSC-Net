@@ -70,7 +70,7 @@ for dataname in "${dataname[@]}"; do
         --output_dir $OUTPUT_DIR \
         --batch_size 64 \
         --lr 5e-5 --update_freq 1 \
-        --warmup_epochs 5 --epochs 200 --layer_decay 0.65 --drop_path 0.1 \
+        --warmup_epochs 5 --epochs 80 --layer_decay 0.65 --drop_path 0.1 \
         --weight_decay 0.05 \
         --sin_pos_emb \
         --dist_eval \
