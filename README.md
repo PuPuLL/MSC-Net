@@ -14,7 +14,7 @@ batch_size=8
 
 # ============================ pretraining ============================
 OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.run \
-  --nproc_per_node=2 \
+  --nproc_per_node=4 \
   tools/run_pretraining.py \
   --output_dir ${OUTPUT_DIR} \
   --model model-to-use \
@@ -62,7 +62,7 @@ for dataname in "${dataname[@]}"; do
   for i in {1..5}; do
     echo "Run $i th project with model: $experiment_name"
     OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES="0,1,2,3" python -m torch.distributed.run \
-        --nproc_per_node=2 \
+        --nproc_per_node=4 \
         tools/run_class_finetuning.py \
         --model model-to-use \
         --finetune $MODEL_PATH \
@@ -70,7 +70,7 @@ for dataname in "${dataname[@]}"; do
         --output_dir $OUTPUT_DIR \
         --batch_size 64 \
         --lr 5e-5 --update_freq 1 \
-        --warmup_epochs 5 --epochs 200 --layer_decay 0.65 --drop_path 0.1 \
+        --warmup_epochs 5 --epochs 80 --layer_decay 0.65 --drop_path 0.1 \
         --weight_decay 0.05 \
         --sin_pos_emb \
         --dist_eval \
